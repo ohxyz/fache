@@ -1,0 +1,32 @@
+{
+  "name": "fache",
+  "version": "0.0.1",
+  "description": "Fetch with cache",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon --inspect server/server.js",
+    "serve": "http-server test -p 5000 -c-1"
+  },
+  "nodemonConfig": {
+    "ignore": [ "test/*", "src/*" ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ohxyz/fache.git"
+  },
+  "keywords": [
+    "fetch",
+    "cache"
+  ],
+  "author": "Ohxyz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ohxyz/fache/issues"
+  },
+  "homepage": "https://github.com/ohxyz/fache#readme",
+  "devDependencies": {
+    "express": "^4.16.4",
+    "nodemon": "^1.18.5"
+  }
+}
