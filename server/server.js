@@ -28,8 +28,6 @@ APP.use( ( request, response, next ) => {
 
 APP.get( '/debug', ( request, response ) => { 
 
-
-
     response.status( 200 );
     response.send( '"Root"' );
 
@@ -37,12 +35,27 @@ APP.get( '/debug', ( request, response ) => {
 
 APP.get( '/400', ( request, response ) => { 
 
-    
     response.status( 400 );
     response.send( '400' );
 
 } );
 
+
+APP.get( '/text', ( request, response ) => { 
+
+    let content = 'Hello World!';
+
+    response.set( 'Content-Type', 'application/json; charset=utf-8' );
+    response.send( content );
+
+} );
+
+APP.get( '/json', ( request, response ) => { 
+
+    let o = { a: 1, b: null, c: undefined, d: false };
+    response.send( o );
+
+} );
 
 APP.listen( PORT, () => {
 
