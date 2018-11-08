@@ -1,82 +1,30 @@
 console.log( 'Test script' );
 
-// const URL = 'http://127.0.0.1:5001';
+/* Debug ******************************************************************************************/
 
-// fetch( URL+'/debug' )
-//     .then( response => {
+function f() {
 
-//         console.warn( 'Response object:', response );
+    let req = new Request( '/sleep/2' );
+    let init = { method: 'GET', seconds: 10 }
 
-//         response.headers.forEach(  (val, key ) => { 
+    fache( req, init )
+        .then( response => {  
 
-//             console.warn( `[${key}] ${val}` ); 
-//         } );
+            return response.text();
+        } )
+        .then( text => { 
 
-//         return response.json();
+            console.warn( 0, text );
+            console.warn( 11, fache.storage.requestResponsePairs[0].response );
+            // console.warn( 12, fache.storage.requestResponsePairs[0].response.text() );
 
-//     } )
-//     .then( returnValue => { 
+            let clone = fache.storage.requestResponsePairs[0].response.clone();
+            console.warn( 13, clone );
+            let cloneOfClone = clone.clone();
+            console.warn( 14, clone.text() );
+            console.warn( 15, cloneOfClone.text() );
 
-//         console.warn( 'Return value:', returnValue );
-        
-//         if ( returnValue === 'Root' ) {
-            
-//             return 'Good';
-//         }
-//         else {
+        } )
+}
 
-//             throw new Error( 'Not root' );
-//         }
-//     } )
-//     .then( result => {
-
-//         console.warn( result );
-//     } )
-//     .catch( error => {
-
-//         console.error( 'Something wrong:', error.name, error.message );
-//     } );
-
-// let url1 = '/text';
-// let url2 = '/json';
-// let url3 = '/none'
-
-// fetch( url3 )
-//     .then( response => { 
-
-//         console.warn( 'response', response );
-//     } )
-//     .then( result => { 
-
-//         console.warn( 'result', result );
-
-//     } );
-
-// caches.open( 'my-cache' ).then( cache => { 
-
-//     console.warn( 1, cache );
-
-//     cache.add( url1 );
-
-// } );
-
-// caches.open( 'my-cache' ).then( cache => { 
-
-//     console.warn( 2, cache );
-
-//     cache.add( url2 );
-
-// } );
-
-// caches.keys().then( results => { 
-
-//     console.warn( 'keys', results );
-// } );
-
-// caches.open( 'my-cache' ).then( cache => {
-
-//     cache.match( url1 ).then( response => console.warn( 3, response ) );
-//     cache.match( url2 ).then( response => console.warn( 4, response ) );
-
-// } );
 
