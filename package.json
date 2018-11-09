@@ -9,7 +9,10 @@
     "serve": "http-server test -p 5000 -c-1"
   },
   "nodemonConfig": {
-    "ignore": [ "test/*", "src/*" ]
+    "ignore": [
+      "test/*",
+      "src/*"
+    ]
   },
   "repository": {
     "type": "git",

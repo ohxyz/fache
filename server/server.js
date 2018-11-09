@@ -16,7 +16,7 @@ function setHeaders( request, response, next ) {
 }
 
 APP.use( express.static( 'src' ) );
-APP.use( express.static( 'test' ) );
+APP.use( express.static( 'test/web' ) );
 APP.use( setHeaders );
 
 APP.use( ( request, response, next ) => {
@@ -28,8 +28,7 @@ APP.use( ( request, response, next ) => {
 APP.get( '/debug', ( request, response ) => { 
 
     response.status( 200 );
-    response.send( '"Root"' );
-
+    response.send( '"Debug"' );
 } );
 
 APP.get( '/400', ( request, response ) => { 

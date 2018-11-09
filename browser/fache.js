@@ -183,36 +183,11 @@
         }
     }
 
-/* Main *******************************************************************************************/
-
     let facheStorage = new FacheStorage();
     let fache = ( urlOrRequest, init ) => facheStorage.promiseGetResponse( urlOrRequest, init );
 
-/* Expose to window object ************************************************************************/
+    window.fache = fache;
+    window.fache.storage = facheStorage;
 
-    if ( typeof window === 'undefined' ) {
-
-        throw new FacheError( 'Fache runs only in the context of a browser.' );
-    }
-    else if ( window.fetch === undefined ) {
-
-        throw new FacheError( 'Fache requires Fetch API. Look for a polyfill.' );
-    }
-    else {
-
-        window.fache = fache;
-        window.fache.storage = facheStorage;
-    }
-
-/* Expose to node application that runs in a browser e.g. React, Angular, Vue, etc ****************/
-
-    if ( typeof module !== 'undefined' ) {
-
-        module.exports = {
-
-            fache: fache,
-            FacheStorage: FacheStorage
-        };
-    }
 }
 

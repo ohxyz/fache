@@ -1,1 +1,3 @@
-require( 'src/fache.js' );
+const fache = require( './src/fache' );
+
+module.exports = fache;
