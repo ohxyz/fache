@@ -8,7 +8,7 @@ If you are developing a web application e.g. React, Angular,etc in a Node enviro
 ```
 npm i fache
 ```
-Note that, as it uses Fetch API, so make sure your application will run in a modern browser.
+Note that, as it uses Fetch API, make sure your application will run in a modern browser. Alternatively, look for a polyfill.
 
 # Difference between Fetch and Fache
 It uses same arguments as Fetch API, https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch. The only difference is Fache adds more in the second parameter. 
