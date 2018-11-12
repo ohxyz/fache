@@ -3,6 +3,8 @@
  */
 
 {
+    'use strict';
+
     class FacheStorage {
 
         /**
@@ -12,14 +14,20 @@
         constructor() {
 
             this.requestResponsePairs = [];
-            this.defaultInitSettings = {
-
-                seconds: 60,
-                shouldExpire: ( request, response ) => true
-            };
         }
 
-        validateInit( init ) {
+        /**
+         * Validate and normalize init settings
+         */
+        normalizeInitSettings( init ) {
+
+            let defaultSettings = {
+
+                seconds: 60,
+                shouldExpire: requestResponsePair => true
+            };
+
+            let settings = Object.assign( {}, init );
 
             if ( typeof init === 'undefined' ) {
                 /* pass */
@@ -28,43 +36,55 @@
 
                 if ( init.seconds !== undefined && typeof init.seconds !== 'number' ) {
                     
-                    throw new FacheError( '`seconds` should be a number.' );
+                    throw new FacheError( '`seconds` should be a number or undefined.' );
                 }
 
-                if ( init.shouldExpire !== undefined && typeof init.shouldExpire !== 'function' ) {
+                if ( init.shouldExpire === undefined || typeof init.shouldExpire === 'function' ) {
+                    /* pass */
+                }
+                else if ( typeof init.shouldExpire === 'boolean' ) {
 
-                    throw new FacheError( '`shouldExpire` should be a function.' );
+                    settings.shouldExpire = () => init.shouldExpire;
+                }
+                else {
+
+                    throw new FacheError( '`shouldExpire` should be a function or undefined.' );
                 }
             }
+            else {
+
+                throw new FacheError( '`init` should be an object or undefined.' );
+            }
+
+            return Object.assign( {}, defaultSettings, settings );
         }
 
         /**
          * Fetch by URL or a Request object, then cache the response
          *
          * @param {string|Object} urlOrRequest - A URL string or a Request object
-         * @param {Object} init - Contains both init settings of Fetch API and init settings of 
+         * @param {Object} settings - Contains both init settings of Fetch API and init settings of 
          *                        cache method
          * @returns {Promise} - A fetched promise with a cloned response
          */
-        cache( urlOrRequest, init ) {
+        cache( urlOrRequest, settings ) {
 
-            let settings = Object.assign( {}, this.defaultInitSettings, init );
             let request = this.pickRequest( urlOrRequest );
+            let reqResPair = new RequestResponsePair( request );
 
-            let reqResPair = new RequestResponsePair( request, {
-
-                cacheLifetime: settings.seconds,
-                shouldInvalidateCache: settings.shouldExpire
-            } );
+            reqResPair.invalidateResponse( 
+                settings.seconds, 
+                settings.shouldExpire,
+                () => this.removePair( reqResPair )
+            );
 
             this.requestResponsePairs.push( reqResPair );
 
-            reqResPair.fetchPromise = fetch( request, init );
+            reqResPair.fetchPromise = fetch( request, settings );
             
             return reqResPair.fetchPromise.then( response => { 
 
                 reqResPair.response = response.clone();
-                reqResPair.isResponseExpired = false;
 
                 return response.clone();
             } );
@@ -75,23 +95,16 @@
          * and cache again. Otherwise return the exiting fetch promise.
          *
          * @param {string|Object} - Same as cache method
-         * @param {Object} - Same as cache method
+         * @param {Object} - Same as `settings` in cache method
          */
         promiseGetResponse( urlOrRequest, init ) {
 
-            this.validateInit( init );
-
+            let setttings = this.normalizeInitSettings( init );
             let reqResPair = this.getPair( urlOrRequest );
 
             if ( reqResPair === null ) {
 
-                return this.cache( urlOrRequest, init );
-            }
-            else if ( reqResPair.isResponseExpired === true  ) {
-
-                this.removePair( reqResPair );
-
-                return this.cache( urlOrRequest, init );
+                return this.cache( urlOrRequest, setttings );
             }
 
             return reqResPair.fetchPromise.then( response => response.clone() );
@@ -168,48 +181,34 @@
 
     class RequestResponsePair {
 
-        constructor( request, init ) {
+        constructor( request ) {
 
             if ( request instanceof Request === false) {
 
                 throw new FacheError( 'Require an instance of Request or RequestRef.' );
             }
 
-            if ( typeof init === 'object' && typeof init.cacheLifetime !== 'number' ) {
-
-                throw new FacheError( 'Cache lifetime should be a number.' );
-            }
-
-            let settings = Object.assign( {}, { cacheLifetime: -1 }, init );
-
             this.request = request;
             this.url = this.request.url;
-            this.cacheLifetime = settings.cacheLifetime; /* in seconds */
-            this.shouldInvalidateCache = settings.shouldInvalidateCache;
             this.response = null;
             this.fetchPromise = null;            
-            this.isResponseExpired = false;
-
-            this.invalidateResponse();
         }
 
-        invalidateResponse() {
+        invalidateResponse( seconds, shouldExpire, onExpire ) {
 
-            if ( this.cacheLifetime <= 0 ) {
+            if ( seconds <= 0 ) {
 
                 return;
             }
 
             setTimeout( () => {
 
-                if ( this.shouldInvalidateCache( this.request, this.response ) === true ) {
+                if ( shouldExpire( this ) === true ) {
 
-                    /* Does not need to set `this.reponse = null` here
-                       Once the response is expired, it will be removed from `reqResPairs` */
-                    this.isResponseExpired = true;
+                    onExpire( this );
                 }
 
-            }, this.cacheLifetime * 1000 );
+            }, seconds * 1000 );
         }
     } 
 
