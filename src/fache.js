@@ -14,8 +14,28 @@
             this.requestResponsePairs = [];
             this.defaultInitSettings = {
 
-                seconds: 60
+                seconds: 60,
+                shouldExpire: ( request, response ) => {}
             };
+        }
+
+        validateInit( init ) {
+
+            if ( typeof init === 'undefined' ) {
+                /* pass */
+            }
+            else if ( typeof init === 'object' ) {
+
+                if ( init.seconds !== undefined && typeof init.seconds !== 'number' ) {
+                    
+                    throw new FacheError( '`seconds` should be a number.' );
+                }
+
+                if ( init.shouldExpire !== undefined && typeof init.shouldExpire !== 'function' ) {
+
+                    throw new FacheError( '`shouldExpire` should be a function.' );
+                }
+            }
         }
 
         /**
@@ -27,13 +47,14 @@
          * @returns {Promise} - A fetched promise with a cloned response
          */
         cache( urlOrRequest, init ) {
-            
+
             let settings = Object.assign( {}, this.defaultInitSettings, init );
             let request = this.pickRequest( urlOrRequest );
 
             let reqResPair = new RequestResponsePair( request, {
 
-                cacheLifetime: init.seconds
+                cacheLifetime: settings.seconds,
+                shouldInvalidateCache: settings.shouldExpire
             } );
 
             this.requestResponsePairs.push( reqResPair );
@@ -57,6 +78,8 @@
          * @param {Object} - Same as cache method
          */
         promiseGetResponse( urlOrRequest, init ) {
+
+            this.validateInit( init );
 
             let reqResPair = this.getPair( urlOrRequest );
 
@@ -162,6 +185,7 @@
             this.request = request;
             this.url = this.request.url;
             this.cacheLifetime = settings.cacheLifetime;
+            this.shouldInvalidateCache = settings.shouldInvalidateCache;
             this.response = null;
             this.fetchPromise = null;            
             this.isResponseExpired = false;
