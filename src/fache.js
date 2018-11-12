@@ -30,22 +30,20 @@
             
             let settings = Object.assign( {}, this.defaultInitSettings, init );
             let request = this.pickRequest( urlOrRequest );
-            let reqResPair = new RequestResponsePair( request );
+
+            let reqResPair = new RequestResponsePair( request, {
+
+                cacheLifetime: init.seconds
+            } );
 
             this.requestResponsePairs.push( reqResPair );
 
             reqResPair.fetchPromise = fetch( request, init );
-            reqResPair.createdAt = new Date();
-            reqResPair.expireAt = new Date( 
-                reqResPair.createdAt.getTime() + settings.seconds * 1000 
-            );
-
-            reqResPair.requestSentAt = new Date();
             
             return reqResPair.fetchPromise.then( response => { 
 
-                reqResPair.responseReceivedAt = new Date();
                 reqResPair.response = response.clone();
+                reqResPair.isResponseExpired = false;
 
                 return response.clone();
             } );
@@ -66,7 +64,7 @@
 
                 return this.cache( urlOrRequest, init );
             }
-            else if ( reqResPair.expireAt < new Date() ) {
+            else if ( reqResPair.isResponseExpired === true  ) {
 
                 this.removePair( reqResPair );
 
@@ -147,21 +145,43 @@
 
     class RequestResponsePair {
 
-        constructor( request ) {
+        constructor( request, init ) {
 
             if ( request instanceof Request === false) {
 
                 throw new FacheError( 'Require an instance of Request or RequestRef.' );
             }
 
+            if ( typeof init === 'object' && typeof init.cacheLifetime !== 'number' ) {
+
+                throw new FacheError( 'Cache lifetime should be a number.' );
+            }
+
+            let settings = Object.assign( {}, { cacheLifetime: -1 }, init );
+
             this.request = request;
-            this.response = null;
-            this.fetchPromise = null;
             this.url = this.request.url;
-            this.createdAt = new Date();
-            this.expireAt = null;
-            this.requestSentAt = null;
-            this.responseReceivedAt = null;
+            this.cacheLifetime = settings.cacheLifetime;
+            this.response = null;
+            this.fetchPromise = null;            
+            this.isResponseExpired = false;
+
+            this.invalidateResponse();
+        }
+
+        invalidateResponse() {
+
+            if ( this.cacheLifetime <= 0 ) {
+
+                return;
+            }
+
+            setTimeout( () => {
+
+                this.response = null;
+                this.isResponseExpired = true;
+
+            }, this.cacheLifetime * 1000 );
         }
     } 
 
