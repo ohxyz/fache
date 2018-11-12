@@ -15,7 +15,7 @@
             this.defaultInitSettings = {
 
                 seconds: 60,
-                shouldExpire: ( request, response ) => {}
+                shouldExpire: ( request, response ) => true
             };
         }
 
@@ -184,7 +184,7 @@
 
             this.request = request;
             this.url = this.request.url;
-            this.cacheLifetime = settings.cacheLifetime;
+            this.cacheLifetime = settings.cacheLifetime; /* in seconds */
             this.shouldInvalidateCache = settings.shouldInvalidateCache;
             this.response = null;
             this.fetchPromise = null;            
@@ -202,8 +202,12 @@
 
             setTimeout( () => {
 
-                this.response = null;
-                this.isResponseExpired = true;
+                if ( this.shouldInvalidateCache( this.request, this.response ) === true ) {
+
+                    /* Does not need to set `this.reponse = null` here
+                       Once the response is expired, it will be removed from `reqResPairs` */
+                    this.isResponseExpired = true;
+                }
 
             }, this.cacheLifetime * 1000 );
         }
