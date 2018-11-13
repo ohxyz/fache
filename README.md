@@ -36,7 +36,7 @@ Default `seconds` is 60.
 | seconds       | Number         | Time in seconds to invalidate cached response after response received  |
 | shouldCache   | Function       | Return false, it will not cache the response                           |
 
-
+##### Example
 ```
 {
     seconds: 10,
