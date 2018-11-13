@@ -5,9 +5,15 @@ console.log( 'Test script' );
 function f() {
 
     let req = new Request( '/sleep/2' );
+    let init = {
+        seconds: 5,
+        shouldCache: response => response.status === 200
+    };
 
-    fache( req )
-        .then( response => {  
+    fache( req, init )
+        .then( response => {
+
+            console.warn( response );
 
             return response.text();
         } )

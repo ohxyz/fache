@@ -1,8 +1,10 @@
 /**
- * Fetch and cache
+ * Fetch and cache the response
  */
 
 {
+    const DEFAULT_CACHE_LIFETIME = 60;
+
     class FacheStorage {
 
         /**
@@ -12,40 +14,72 @@
         constructor() {
 
             this.requestResponsePairs = [];
-            this.defaultInitSettings = {
+        }
 
-                seconds: 60
+        /**
+         * Validate and normalize init settings
+         */
+        normalizeInitSettings( init ) {
+
+            if ( typeof init !== 'undefined' && typeof init !== 'object' ) {
+
+                throw new FacheError( '`init` should be an object or undefined' );
+            }
+
+            let defaultSettings = {
+
+                seconds: DEFAULT_CACHE_LIFETIME,
+                shouldCache: response => true
             };
+
+            let settings = Object.assign( {}, defaultSettings, init );
+
+            if ( typeof settings.seconds !== 'number' ) {
+                
+                throw new FacheError( '`seconds` should be a number.' );
+            }
+
+            if ( typeof settings.shouldCache !== 'function' ) {
+
+                throw new FacheError( '`shouldCache` should be a function.' );
+            }
+
+            return settings;
         }
 
         /**
          * Fetch by URL or a Request object, then cache the response
          *
          * @param {string|Object} urlOrRequest - A URL string or a Request object
-         * @param {Object} init - Contains both init settings of Fetch API and init settings of 
+         * @param {Object} settings - Contains both init settings of Fetch API and init settings of 
          *                        cache method
          * @returns {Promise} - A fetched promise with a cloned response
          */
-        cache( urlOrRequest, init ) {
-            
-            let settings = Object.assign( {}, this.defaultInitSettings, init );
+        cache( urlOrRequest, settings ) {
+
             let request = this.pickRequest( urlOrRequest );
             let reqResPair = new RequestResponsePair( request );
 
             this.requestResponsePairs.push( reqResPair );
 
-            reqResPair.fetchPromise = fetch( request, init );
-            reqResPair.createdAt = new Date();
-            reqResPair.expireAt = new Date( 
-                reqResPair.createdAt.getTime() + settings.seconds * 1000 
-            );
-
-            reqResPair.requestSentAt = new Date();
+            reqResPair.fetchPromise = fetch( request, settings );
             
             return reqResPair.fetchPromise.then( response => { 
 
-                reqResPair.responseReceivedAt = new Date();
                 reqResPair.response = response.clone();
+
+                if ( settings.shouldCache( response.clone() ) === true ) {
+
+                    reqResPair.invalidateResponse( 
+
+                        settings.seconds, 
+                        () => this.removePair( reqResPair )
+                    );
+                }
+                else {
+
+                    this.removePair( reqResPair );
+                }
 
                 return response.clone();
             } );
@@ -56,21 +90,16 @@
          * and cache again. Otherwise return the exiting fetch promise.
          *
          * @param {string|Object} - Same as cache method
-         * @param {Object} - Same as cache method
+         * @param {Object} - Same as `settings` in cache method
          */
         promiseGetResponse( urlOrRequest, init ) {
 
+            let setttings = this.normalizeInitSettings( init );
             let reqResPair = this.getPair( urlOrRequest );
 
             if ( reqResPair === null ) {
 
-                return this.cache( urlOrRequest, init );
-            }
-            else if ( reqResPair.expireAt < new Date() ) {
-
-                this.removePair( reqResPair );
-
-                return this.cache( urlOrRequest, init );
+                return this.cache( urlOrRequest, setttings );
             }
 
             return reqResPair.fetchPromise.then( response => response.clone() );
@@ -155,13 +184,23 @@
             }
 
             this.request = request;
-            this.response = null;
-            this.fetchPromise = null;
             this.url = this.request.url;
-            this.createdAt = new Date();
-            this.expireAt = null;
-            this.requestSentAt = null;
-            this.responseReceivedAt = null;
+            this.response = null;
+            this.fetchPromise = null;            
+        }
+
+        invalidateResponse( seconds, onCacheExpire ) {
+
+            if ( seconds <= 0 ) {
+
+                return;
+            }
+
+            setTimeout( () => {
+                
+                onCacheExpire( this );
+
+            }, seconds * 1000 );
         }
     } 
 

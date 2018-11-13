@@ -1,9 +1,9 @@
 /**
- * Fetch and cache
+ * Fetch and cache the response
  */
 
 {
-    'use strict';
+    const DEFAULT_CACHE_LIFETIME = 60;
 
     class FacheStorage {
 
@@ -28,7 +28,7 @@
 
             let defaultSettings = {
 
-                seconds: 5,
+                seconds: DEFAULT_CACHE_LIFETIME,
                 shouldCache: response => true
             };
 

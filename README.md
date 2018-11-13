@@ -28,3 +28,17 @@ Default `seconds` is 60.
 ##### Note that
 1. Time to invalidate the cache starts when the first Fache call's response is received.
 2. If a subsequent call has same Request or URL but different `seconds` value, e.g. `20`, then it will __NOT__ update the cache lifetime of the first call until the response of first call expires.
+
+### More settings of second parameter
+
+| Settings      | Type           | Description                                                            |
+| ------------- | -------------  | ---------------------------------------------------------------------- |
+| seconds       | Number         | Time in seconds to invalidate cached response after response received  |
+| shouldCache   | Function       | Return false, it will not cache the response                           |  
+
+```
+{
+    seconds: 10,
+    shouldCache: response => response.status === 200
+}
+```
