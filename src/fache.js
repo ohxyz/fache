@@ -13,7 +13,7 @@
          */
         constructor() {
 
-            this.requestResponsePairs = [];
+            this.cachedPairs = [];
         }
 
         /**
@@ -60,7 +60,7 @@
             let request = this.pickRequest( urlOrRequest );
             let reqResPair = new RequestResponsePair( request );
 
-            this.requestResponsePairs.push( reqResPair );
+            this.cachedPairs.push( reqResPair );
 
             reqResPair.fetchPromise = fetch( request, settings );
             
@@ -149,11 +149,11 @@
 
             let url = this.pickUrl( urlOrRequest );
 
-            for ( let i = 0; i < this.requestResponsePairs.length; i ++ ) {
+            for ( let i = 0; i < this.cachedPairs.length; i ++ ) {
 
-                if ( url === this.requestResponsePairs[i].url ) {
+                if ( url === this.cachedPairs[i].url ) {
 
-                    return this.requestResponsePairs[i];
+                    return this.cachedPairs[i];
                 }
             }
 
@@ -162,11 +162,11 @@
 
         removePair( reqResPair ) {
 
-            let index = this.requestResponsePairs.indexOf( reqResPair );
+            let index = this.cachedPairs.indexOf( reqResPair );
 
             if ( index >= 0 ) {
 
-                this.requestResponsePairs.splice( index, 1 );
+                this.cachedPairs.splice( index, 1 );
                 return true;
             }
 
