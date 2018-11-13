@@ -21,42 +21,30 @@
          */
         normalizeInitSettings( init ) {
 
+            if ( typeof init !== 'undefined' && typeof init !== 'object' ) {
+
+                throw new FacheError( '`init` should be an object or undefined' );
+            }
+
             let defaultSettings = {
 
-                seconds: 60,
-                shouldExpire: requestResponsePair => true
+                seconds: 5,
+                shouldCache: response => true
             };
 
-            let settings = Object.assign( {}, init );
+            let settings = Object.assign( {}, defaultSettings, init );
 
-            if ( typeof init === 'undefined' ) {
-                /* pass */
-            }
-            else if ( typeof init === 'object' ) {
-
-                if ( init.seconds !== undefined && typeof init.seconds !== 'number' ) {
-                    
-                    throw new FacheError( '`seconds` should be a number or undefined.' );
-                }
-
-                if ( init.shouldExpire === undefined || typeof init.shouldExpire === 'function' ) {
-                    /* pass */
-                }
-                else if ( typeof init.shouldExpire === 'boolean' ) {
-
-                    settings.shouldExpire = () => init.shouldExpire;
-                }
-                else {
-
-                    throw new FacheError( '`shouldExpire` should be a function or undefined.' );
-                }
-            }
-            else {
-
-                throw new FacheError( '`init` should be an object or undefined.' );
+            if ( typeof settings.seconds !== 'number' ) {
+                
+                throw new FacheError( '`seconds` should be a number.' );
             }
 
-            return Object.assign( {}, defaultSettings, settings );
+            if ( typeof settings.shouldCache !== 'function' ) {
+
+                throw new FacheError( '`shouldCache` should be a function.' );
+            }
+
+            return settings;
         }
 
         /**
@@ -72,12 +60,6 @@
             let request = this.pickRequest( urlOrRequest );
             let reqResPair = new RequestResponsePair( request );
 
-            reqResPair.invalidateResponse( 
-                settings.seconds, 
-                settings.shouldExpire,
-                () => this.removePair( reqResPair )
-            );
-
             this.requestResponsePairs.push( reqResPair );
 
             reqResPair.fetchPromise = fetch( request, settings );
@@ -85,6 +67,19 @@
             return reqResPair.fetchPromise.then( response => { 
 
                 reqResPair.response = response.clone();
+
+                if ( settings.shouldCache( response.clone() ) === true ) {
+
+                    reqResPair.invalidateResponse( 
+
+                        settings.seconds, 
+                        () => this.removePair( reqResPair )
+                    );
+                }
+                else {
+
+                    this.removePair( reqResPair );
+                }
 
                 return response.clone();
             } );
@@ -194,7 +189,7 @@
             this.fetchPromise = null;            
         }
 
-        invalidateResponse( seconds, shouldExpire, onExpire ) {
+        invalidateResponse( seconds, onCacheExpire ) {
 
             if ( seconds <= 0 ) {
 
@@ -202,11 +197,8 @@
             }
 
             setTimeout( () => {
-
-                if ( shouldExpire( this ) === true ) {
-
-                    onExpire( this );
-                }
+                
+                onCacheExpire( this );
 
             }, seconds * 1000 );
         }
