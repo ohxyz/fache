@@ -1,9 +1,8 @@
 /**
  * Fetch and cache the response
  */
+( function () {
 
-
-{
     const DEFAULT_CACHE_LIFETIME = 60;
 
     class FacheStorage {
@@ -56,7 +55,7 @@
          * Fetch by URL or a Request object, then cache the response
          *
          * @param {string|Object} urlOrRequest - A URL string or a Request object
-         * @param {Object} settings - Contains both init settings of Fetch API and init settings of 
+         * @param {Object} settings - Contains both settings of Fetch API and settings of 
          *                            cache method
          * @returns {Promise} A fetched promise with a cloned response
          */
@@ -100,12 +99,12 @@
          */
         promiseGetResponse( urlOrRequest, init ) {
 
-            let setttings = this.normalizeInitSettings( init );
+            let settings = this.normalizeInitSettings( init );
             let reqResPair = this.getPair( urlOrRequest );
 
             if ( reqResPair === null ) {
 
-                return this.cache( urlOrRequest, setttings );
+                return this.cache( urlOrRequest, settings );
             }
 
             return reqResPair.fetchPromise.then( response => response.clone() );
@@ -259,5 +258,6 @@
             FacheStorage: FacheStorage
         };
     }
-}
+
+} )();
 
