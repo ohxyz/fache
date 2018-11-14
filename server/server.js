@@ -16,35 +16,61 @@ function setHeaders( request, response, next ) {
 }
 
 APP.use( express.static( 'src' ) );
-APP.use( express.static( 'test' ) );
+APP.use( express.static( 'test/web' ) );
+APP.use( express.static( 'browser' ) );
+
 APP.use( setHeaders );
 
 APP.use( ( request, response, next ) => {
 
-    console.log( 'Before 2' );
-    console.log( request.headers );
+    console.log( 'Before 1' );
     next();
 } )
 
 APP.get( '/debug', ( request, response ) => { 
 
-
-
     response.status( 200 );
-    response.send( '"Root"' );
-
+    response.send( '"Debug"' );
 } );
 
 APP.get( '/400', ( request, response ) => { 
 
-    
     response.status( 400 );
     response.send( '400' );
+} );
+
+APP.get( '/sleep/:seconds', ( request, response ) => { 
+
+    let seconds = request.params.seconds;
+
+    console.warn( 'sleep');
+
+    setTimeout( () => { 
+
+        console.warn( 'Wakeup... ');
+        let dateString = new Date().toISOString().slice( 11, 19 );
+
+        response.send( `[${dateString}] Slept for ${seconds} seconds.` );
+
+    }, seconds * 1000 );
+} )
+
+APP.get( '/text', ( request, response ) => { 
+
+    let content = 'Hello World!';
+
+    response.send( content );
 
 } );
 
+APP.get( '/json', ( request, response ) => { 
+
+    let o = { a: 1, b: null, c: undefined, d: false };
+    response.send( o );
+
+} );
 
 APP.listen( PORT, () => {
 
-    console.log( `Listening at port: ${PORT}` );
+    console.log( `Server started, listening at port: ${PORT}` );
 } );

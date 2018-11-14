@@ -1,15 +1,20 @@
 {
   "name": "fache",
-  "version": "0.0.1",
-  "description": "Fetch with cache",
+  "version": "1.1.4",
+  "description": "Fetch and cache the response",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --inspect server/server.js",
-    "serve": "http-server test -p 5000 -c-1"
+    "serve": "http-server test -p 5000 -c-1",
+    "build": "rollup -c --environment INCLUDE_DEPS,BUILD:production",
+    "prepublishOnly": "npm run build"
   },
   "nodemonConfig": {
-    "ignore": [ "test/*", "src/*" ]
+    "ignore": [
+      "test/*",
+      "src/*"
+    ]
   },
   "repository": {
     "type": "git",
@@ -26,7 +31,13 @@
   },
   "homepage": "https://github.com/ohxyz/fache#readme",
   "devDependencies": {
+    "@babel/core": "^7.1.6",
+    "@babel/preset-env": "^7.1.6",
     "express": "^4.16.4",
-    "nodemon": "^1.18.5"
+    "nodemon": "^1.18.5",
+    "rollup": "^0.67.1",
+    "rollup-plugin-babel": "^4.0.3",
+    "rollup-plugin-node-resolve": "^3.4.0",
+    "rollup-plugin-uglify": "^6.0.0"
   }
 }
