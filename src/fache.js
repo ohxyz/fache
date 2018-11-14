@@ -18,6 +18,12 @@
 
         /**
          * Validate and normalize init settings
+         *
+         * @param {Object} init - Initial settings
+         * @param {function|number|undefined} seconds - Lifetime of cache. If function, then should
+         *                                              return a number type
+         *
+         * @return {Object} Normalized settings with default values
          */
         normalizeInitSettings( init ) {
 
@@ -28,20 +34,18 @@
 
             let defaultSettings = {
 
-                seconds: DEFAULT_CACHE_LIFETIME,
-                shouldCache: response => true
+                seconds: DEFAULT_CACHE_LIFETIME
             };
 
             let settings = Object.assign( {}, defaultSettings, init );
 
-            if ( typeof settings.seconds !== 'number' ) {
+            if ( typeof settings.seconds === 'number' ) {
                 
-                throw new FacheError( '`seconds` should be a number.' );
+                settings.getCacheLifeTime = resposne => settings.seconds;
             }
+            else if ( typeof settings.seconds === 'function' ) {
 
-            if ( typeof settings.shouldCache !== 'function' ) {
-
-                throw new FacheError( '`shouldCache` should be a function.' );
+                settings.getCacheLifeTime = settings.seconds;
             }
 
             return settings;
@@ -52,8 +56,8 @@
          *
          * @param {string|Object} urlOrRequest - A URL string or a Request object
          * @param {Object} settings - Contains both init settings of Fetch API and init settings of 
-         *                        cache method
-         * @returns {Promise} - A fetched promise with a cloned response
+         *                            cache method
+         * @returns {Promise} A fetched promise with a cloned response
          */
         cache( urlOrRequest, settings ) {
 
@@ -68,11 +72,12 @@
 
                 reqResPair.response = response.clone();
 
-                if ( settings.shouldCache( response.clone() ) === true ) {
+                let cacheLifeTime = settings.getCacheLifeTime( response.clone() );
+
+                if ( cacheLifeTime > 0 ) {
 
                     reqResPair.invalidateResponse( 
-
-                        settings.seconds, 
+                        cacheLifeTime, 
                         () => this.removePair( reqResPair )
                     );
                 }

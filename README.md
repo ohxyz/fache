@@ -31,15 +31,13 @@ Default `seconds` is 60.
 
 ### More settings of second parameter
 
-| Settings      | Type           | Description                                                            |
-| ------------- | -------------  | ---------------------------------------------------------------------- |
-| seconds       | Number         | Time in seconds to invalidate cached response after response received  |
-| shouldCache   | Function       | Return false, it will not cache the response                           |
+| Settings      | Type              | Description                                                            |
+| ------------- | ----------------- | ---------------------------------------------------------------------- |
+| seconds       | Number, Function  | Time in seconds to invalidate cached response after response received  |
 
-##### Example
+##### If `seconds` is a function, e.g. Cache for 10 seconds if response's status is 200.
 ```
 {
-    seconds: 10,
-    shouldCache: response => response.status === 200
+    seconds: response => response.status === 200 ? 10 : 0
 }
 ```

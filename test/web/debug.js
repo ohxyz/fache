@@ -6,8 +6,7 @@ function f() {
 
     let req = new Request( '/sleep/2' );
     let init = {
-        seconds: 5,
-        shouldCache: response => response.status === 200
+        seconds: response => response.status === 200 ? 10 : 0
     };
 
     fache( req, init )
