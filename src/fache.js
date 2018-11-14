@@ -15,8 +15,6 @@
         constructor() {
 
             this.cachedPairs = [];
-
-            throw new Error('xxx');
         }
 
         /**
