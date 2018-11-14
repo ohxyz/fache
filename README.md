@@ -2,7 +2,7 @@
 Fache is a utility built on top of browser's Fetch API. It caches the result(Response object). When next time you call Fache API, it returns a promise with cached Response object from last call, until it expires.
 
 # Install
-For adding directly to a web page, go to `browser` folder and download `fache.js`.
+For adding directly to a web page, go to `browser` folder and download `fache.min.js`.
 
 If you are developing a web application e.g. React, Angular,etc in a Node environment, then
 ```

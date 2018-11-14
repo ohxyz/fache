@@ -2,6 +2,7 @@
  * Fetch and cache the response
  */
 
+
 {
     const DEFAULT_CACHE_LIFETIME = 60;
 
@@ -14,6 +15,8 @@
         constructor() {
 
             this.cachedPairs = [];
+
+            throw new Error('xxx');
         }
 
         /**

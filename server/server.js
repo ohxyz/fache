@@ -17,6 +17,8 @@ function setHeaders( request, response, next ) {
 
 APP.use( express.static( 'src' ) );
 APP.use( express.static( 'test/web' ) );
+APP.use( express.static( 'browser' ) );
+
 APP.use( setHeaders );
 
 APP.use( ( request, response, next ) => {
