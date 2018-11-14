@@ -31,9 +31,9 @@ Default `seconds` is 60.
 
 ### More settings of second parameter
 
-| Settings      | Type              | Description                                                            |
-| ------------- | ----------------- | ---------------------------------------------------------------------- |
-| seconds       | Number, Function  | Time in seconds to invalidate cached response after response received  |
+| Settings      | Type                 | Description                                                            |
+|---------------|----------------------|------------------------------------------------------------------------|
+| seconds       | `number`|`function`  | Time in seconds to invalidate cached response after response received  |
 
 ##### If `seconds` is a function, e.g. Cache for 10 seconds if response's status is 200.
 ```
