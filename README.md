@@ -33,7 +33,7 @@ Default `seconds` is 60.
 
 | Settings      | Type                 | Description                                                            |
 |---------------|----------------------|------------------------------------------------------------------------|
-| seconds       | `number`｜`function` | Time in seconds to invalidate cached response after response received  |
+| seconds       | `number`｜`function` | Time in seconds to invalidate cached response after response received. |
 
 
 #### If `seconds` is a function, e.g. Cache for 10 seconds if response's status is 200.
@@ -47,12 +47,10 @@ Default `seconds` is 60.
 
 | Method Name             | Description                                                            |
 |-------------------------|------------------------------------------------------------------------|
-| clearAll()              | Clear all cached responses                                             |
+| clearAll()              | Clear all cached responses.                                            |
 | clear( urlOrRequest )   | Clear a cached response by URL or Request object.                      |
 
 #### Clear previously sent request by URL.
 ```
-{
-    fache.clear( '/api/data' );
-}
+fache.clear( '/api/data' );
 ```
