@@ -25,19 +25,32 @@ fache( '/api/data', { method: 'GET', seconds: 10 } )
 ```
 Default `seconds` is 60.
 
-##### Note that
+#### Note that
 1. Time to invalidate the cache starts when the first Fache call's response is received.
 2. If a subsequent call has same Request or URL but different `seconds` value, e.g. `20`, then it will __NOT__ update the cache lifetime of the first call until the response of first call expires.
 
 ### More settings of second parameter
 
-| Settings      | Type              | Description                                                            |
-| ------------- | ----------------- | ---------------------------------------------------------------------- |
-| seconds       | Number, Function  | Time in seconds to invalidate cached response after response received  |
+| Settings      | Type                 | Description                                                            |
+|---------------|----------------------|------------------------------------------------------------------------|
+| seconds       | `number`｜`function` | Time in seconds to invalidate cached response after response received. |
 
-##### If `seconds` is a function, e.g. Cache for 10 seconds if response's status is 200.
+
+#### If `seconds` is a function, e.g. Cache for 10 seconds if response's status is 200.
 ```
 {
     seconds: response => response.status === 200 ? 10 : 0
 }
+```
+
+### Methods of Fache object
+
+| Method Name             | Description                                                            |
+|-------------------------|------------------------------------------------------------------------|
+| clearAll()              | Clear all cached responses.                                            |
+| clear( urlOrRequest )   | Clear a cached response by URL or Request object.                      |
+
+#### Clear previously sent request by URL.
+```
+fache.clear( '/api/data' );
 ```

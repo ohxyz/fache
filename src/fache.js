@@ -1,12 +1,11 @@
 /**
  * Fetch and cache the response
  */
+( function () {
 
-
-{
     const DEFAULT_CACHE_LIFETIME = 60;
 
-    class FacheStorage {
+    class FacheManager {
 
         /**
          * Constructor 
@@ -35,10 +34,13 @@
 
             let defaultSettings = {
 
-                seconds: DEFAULT_CACHE_LIFETIME
+                seconds: DEFAULT_CACHE_LIFETIME,
+                method: 'GET'
             };
 
             let settings = Object.assign( {}, defaultSettings, init );
+
+            settings.method = settings.method.toUpperCase();
 
             if ( typeof settings.seconds === 'number' ) {
                 
@@ -53,20 +55,26 @@
         }
 
         /**
-         * Fetch by URL or a Request object, then cache the response
+         * Fetch by URL or a Request object, then cache the response. Note that it only caches GET
+         * requests.
          *
          * @param {string|Object} urlOrRequest - A URL string or a Request object
-         * @param {Object} settings - Contains both init settings of Fetch API and init settings of 
+         * @param {Object} settings - Contains both settings of Fetch API and settings of 
          *                            cache method
          * @returns {Promise} A fetched promise with a cloned response
          */
         cache( urlOrRequest, settings ) {
 
             let request = this.pickRequest( urlOrRequest );
+
+            if ( settings.method !== 'GET' ) {
+
+                return fetch( request, settings );
+            }
+
             let reqResPair = new RequestResponsePair( request );
 
             this.cachedPairs.push( reqResPair );
-
             reqResPair.fetchPromise = fetch( request, settings );
             
             return reqResPair.fetchPromise.then( response => { 
@@ -100,12 +108,12 @@
          */
         promiseGetResponse( urlOrRequest, init ) {
 
-            let setttings = this.normalizeInitSettings( init );
+            let settings = this.normalizeInitSettings( init );
             let reqResPair = this.getPair( urlOrRequest );
 
             if ( reqResPair === null ) {
 
-                return this.cache( urlOrRequest, setttings );
+                return this.cache( urlOrRequest, settings );
             }
 
             return reqResPair.fetchPromise.then( response => response.clone() );
@@ -137,7 +145,8 @@
 
             if ( typeof urlOrRequest === 'string' ) {
 
-                url = urlOrRequest;
+                // URL could be a relative path. Make it to a full path.
+                url = new Request( urlOrRequest ).url;
             }
             else if ( urlOrRequest instanceof Request ) {
 
@@ -178,6 +187,55 @@
 
             return false;
         }
+
+        /**
+         * Remove all cached pairs. Means that all cached responses are invalidated.
+         */
+        clearAll() {
+
+            this.cachedPairs = [];
+        }
+
+        /**
+         * Clear a cached pair by URL or Request object
+         *
+         * @returns {number} Return index of the cachedPair or -1 when not found.
+         */
+        clear( urlOrRequest ) {
+
+            let url = '';
+            let request = null;
+            let i = 0;
+
+            if ( typeof urlOrRequest === 'string' ) {
+
+                url = new Request( urlOrRequest ).url;
+
+                for ( i = 0; i < this.cachedPairs.length; i ++ ) {
+
+                    if ( url === this.cachedPairs[i].url ) {
+
+                        this.cachedPairs.splice( i, 1 );
+                        return i;
+                    }
+                }
+            }
+            else if ( urlOrRequest instanceof Request ) {
+
+                requrest = urlOrRequest;
+
+                for ( i = 0; i < this.cachedPairs.length; i ++ ) {
+
+                    if ( request === this.cachedPairs[i].request ) {
+
+                        this.cachedPair.splice( i, 1 );
+                        return i;
+                    }
+                }
+            }
+
+            return -1;
+        }
     }
 
     class RequestResponsePair {
@@ -192,7 +250,7 @@
             this.request = request;
             this.url = this.request.url;
             this.response = null;
-            this.fetchPromise = null;            
+            this.fetchPromise = null;
         }
 
         invalidateResponse( seconds, onCacheExpire ) {
@@ -230,8 +288,8 @@
 
 /* Main *******************************************************************************************/
 
-    let facheStorage = new FacheStorage();
-    let fache = ( urlOrRequest, init ) => facheStorage.promiseGetResponse( urlOrRequest, init );
+    let facheManager = new FacheManager();
+    let fache = ( urlOrRequest, init ) => facheManager.promiseGetResponse( urlOrRequest, init );
 
 /* Expose to window object ************************************************************************/
 
@@ -245,8 +303,11 @@
     }
     else {
 
+        fache.manager = facheManager;
+        fache.clear = urlOrRequest => facheManager.clear( urlOrRequest );
+        fache.clearAll = () => facheManager.clearAll();
+
         window.fache = fache;
-        window.fache.storage = facheStorage;
     }
 
 /* Expose to node application that runs in a browser e.g. React, Angular, Vue, etc ****************/
@@ -256,8 +317,9 @@
         module.exports = {
 
             fache: fache,
-            FacheStorage: FacheStorage
+            FacheManager: FacheManager
         };
     }
-}
+
+} )();
 
