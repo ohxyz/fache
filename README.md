@@ -10,6 +10,20 @@ npm i fache
 ```
 Note that, as it uses Fetch API, make sure your application will run in a modern browser. Alternatively, look for a polyfill.
 
+# Use
+
+In CommonJS
+
+```
+const fache = require('fache');
+```
+
+Or ES6 style
+
+```
+import fache from 'fache';
+```
+
 # Difference between Fetch and Fache
 It has same parameters as Fetch API, https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch. The difference is Fache adds more in the second parameter. 
 

@@ -304,6 +304,7 @@
     else {
 
         fache.manager = facheManager;
+        fache.FacheManager = FacheManager;
         fache.clear = urlOrRequest => facheManager.clear( urlOrRequest );
         fache.clearAll = () => facheManager.clearAll();
 
@@ -314,11 +315,7 @@
 
     if ( typeof module !== 'undefined' ) {
 
-        module.exports = {
-
-            fache: fache,
-            FacheManager: FacheManager
-        };
+        module.exports = fache;
     }
 
 } )();
