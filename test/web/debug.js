@@ -33,6 +33,17 @@ function f() {
         } )
 
     fache( '/sleep/3', init );
-}
 
+    fache( '/sleep/2', init )
+        .then( response => {
+
+            console.warn( response, 'cached' );
+
+            return response.text();
+        } )
+        .then( text => { 
+
+            console.warn( 0, 'cached', text );
+        } )
+}
 

@@ -72,7 +72,7 @@
                 return fetch( request, settings );
             }
 
-            let reqResPair = new RequestResponsePair( request );
+            let reqResPair = new RequestResponsePair( request, settings );
 
             this.cachedPairs.push( reqResPair );
             reqResPair.fetchPromise = fetch( request, settings );
@@ -109,7 +109,7 @@
         promiseGetResponse( urlOrRequest, init ) {
 
             let settings = this.normalizeInitSettings( init );
-            let reqResPair = this.getPair( urlOrRequest );
+            let reqResPair = this.getPair( urlOrRequest, init );
 
             if ( reqResPair === null ) {
 
@@ -160,15 +160,17 @@
             return url;
         }    
 
-        getPair( urlOrRequest ) {
+        getPair( urlOrRequest, settings ) {
 
             let url = this.pickUrl( urlOrRequest );
 
             for ( let i = 0; i < this.cachedPairs.length; i ++ ) {
 
-                if ( url === this.cachedPairs[i].url ) {
+                let pair = this.cachedPairs[i];
 
-                    return this.cachedPairs[i];
+                if ( url === pair.url && shallowCompareObjects(settings, pair.settings) ) {
+
+                    return pair;
                 }
             }
 
@@ -240,7 +242,7 @@
 
     class RequestResponsePair {
 
-        constructor( request ) {
+        constructor( request, settings = {} ) {
 
             if ( request instanceof Request === false) {
 
@@ -251,6 +253,7 @@
             this.url = this.request.url;
             this.response = null;
             this.fetchPromise = null;
+            this.settings = settings;
         }
 
         invalidateResponse( seconds, onCacheExpire ) {
@@ -284,6 +287,17 @@
                 this.stack = ( new Error( message ) ).stack; 
             }
         }
+    }
+
+/* Utils ******************************************************************************************/
+    
+    // Ref: https://stackoverflow.com/questions/22266826
+    function shallowCompareObjects( obj1, obj2 ) {
+        
+        return    Object.keys( obj1 ).length === Object.keys( obj2 ).length
+               && Object.keys( obj1 )
+                        .every( key => obj2.hasOwnProperty(key) && obj1[key] === obj2[key] )
+
     }
 
 /* Main *******************************************************************************************/

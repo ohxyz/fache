@@ -47,7 +47,7 @@ APP.get( '/sleep/:seconds', ( request, response ) => {
 
     setTimeout( () => { 
 
-        console.warn( 'Wakeup... ');
+        console.warn( `Wakeup after ${seconds} second(s).` );
         let dateString = new Date().toISOString().slice( 11, 19 );
 
         response.send( `[${dateString}] Slept for ${seconds} seconds.` );
