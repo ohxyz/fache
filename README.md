@@ -42,7 +42,7 @@ Default `seconds` is 60.
 #### Note that
 1. Time to invalidate the cache starts when the first Fache call's response is received.
 2. If a subsequent call has same Request or URL but different `seconds` value, e.g. `20`, then it will __NOT__ update the cache lifetime of the first call until the response of first call expires.
-3. When deciding if a response will be cached, it starts with checking fache's first parameter to see if they have the same value. Then it shallow compares fache's second parameter value. If it returns true, then the response is cached for `seconds` time.
+3. When deciding if a response will be cached, it starts with checking fache's first parameter to see if they have the same value. Then it shallow compares values of the second parameter. If it returns true, then the response is cached for `seconds` time.
 
 ### More settings of second parameter
 
