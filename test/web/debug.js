@@ -2,11 +2,16 @@ console.log( 'Test script' );
 
 /* Debug ******************************************************************************************/
 
+function s( response ) {
+
+    return response.status === 200 ? 30 : 0.
+}
+
 function f() {
 
     let req = new Request( '/sleep/2' );
     let init = {
-        seconds: response => response.status === 200 ? 30 : 0,
+        seconds: s,
         method: 'get'
     };
     fache( '/sleep/1', init )
@@ -33,6 +38,20 @@ function f() {
         } )
 
     fache( '/sleep/3', init );
-}
 
+    fache( '/sleep/2', {
+        seconds: s,
+        method: 'get'
+    } )
+        .then( response => {
+
+            console.warn( response, 'cached' );
+
+            return response.text();
+        } )
+        .then( text => { 
+
+            console.warn( 0, 'cached', text );
+        } )
+}
 

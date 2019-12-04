@@ -14,6 +14,7 @@
         constructor() {
 
             this.cachedPairs = [];
+            this.getCacheLifeTime = () => {};
         }
 
         /**
@@ -44,11 +45,11 @@
 
             if ( typeof settings.seconds === 'number' ) {
                 
-                settings.getCacheLifeTime = resposne => settings.seconds;
+                this.getCacheLifeTime = resposne => settings.seconds;
             }
             else if ( typeof settings.seconds === 'function' ) {
 
-                settings.getCacheLifeTime = settings.seconds;
+                this.getCacheLifeTime = settings.seconds;
             }
 
             return settings;
@@ -72,7 +73,7 @@
                 return fetch( request, settings );
             }
 
-            let reqResPair = new RequestResponsePair( request );
+            let reqResPair = new RequestResponsePair( request, settings );
 
             this.cachedPairs.push( reqResPair );
             reqResPair.fetchPromise = fetch( request, settings );
@@ -81,7 +82,7 @@
 
                 reqResPair.response = response.clone();
 
-                let cacheLifeTime = settings.getCacheLifeTime( response.clone() );
+                let cacheLifeTime = this.getCacheLifeTime( response.clone() );
 
                 if ( cacheLifeTime > 0 ) {
 
@@ -109,7 +110,7 @@
         promiseGetResponse( urlOrRequest, init ) {
 
             let settings = this.normalizeInitSettings( init );
-            let reqResPair = this.getPair( urlOrRequest );
+            let reqResPair = this.getPair( urlOrRequest, settings );
 
             if ( reqResPair === null ) {
 
@@ -160,15 +161,17 @@
             return url;
         }    
 
-        getPair( urlOrRequest ) {
+        getPair( urlOrRequest, settings ) {
 
             let url = this.pickUrl( urlOrRequest );
 
             for ( let i = 0; i < this.cachedPairs.length; i ++ ) {
 
-                if ( url === this.cachedPairs[i].url ) {
+                let pair = this.cachedPairs[i];
 
-                    return this.cachedPairs[i];
+                if ( url === pair.url && shallowCompareObjects(settings, pair.settings) ) {
+
+                    return pair;
                 }
             }
 
@@ -240,7 +243,7 @@
 
     class RequestResponsePair {
 
-        constructor( request ) {
+        constructor( request, settings = {} ) {
 
             if ( request instanceof Request === false) {
 
@@ -251,6 +254,7 @@
             this.url = this.request.url;
             this.response = null;
             this.fetchPromise = null;
+            this.settings = settings;
         }
 
         invalidateResponse( seconds, onCacheExpire ) {
@@ -286,6 +290,17 @@
         }
     }
 
+/* Utils ******************************************************************************************/
+    
+    // Ref: https://stackoverflow.com/questions/22266826
+    function shallowCompareObjects( obj1, obj2 ) {
+        
+        return    Object.keys( obj1 ).length === Object.keys( obj2 ).length
+               && Object.keys( obj1 )
+                        .every( key => obj2.hasOwnProperty(key) && obj1[key] === obj2[key] )
+
+    }
+
 /* Main *******************************************************************************************/
 
     let facheManager = new FacheManager();
@@ -304,6 +319,7 @@
     else {
 
         fache.manager = facheManager;
+        fache.FacheManager = FacheManager;
         fache.clear = urlOrRequest => facheManager.clear( urlOrRequest );
         fache.clearAll = () => facheManager.clearAll();
 
@@ -314,11 +330,7 @@
 
     if ( typeof module !== 'undefined' ) {
 
-        module.exports = {
-
-            fache: fache,
-            FacheManager: FacheManager
-        };
+        module.exports = fache;
     }
 
 } )();
