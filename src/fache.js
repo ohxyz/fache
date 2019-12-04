@@ -14,6 +14,7 @@
         constructor() {
 
             this.cachedPairs = [];
+            this.getCacheLifeTime = () => {};
         }
 
         /**
@@ -44,11 +45,11 @@
 
             if ( typeof settings.seconds === 'number' ) {
                 
-                settings.getCacheLifeTime = resposne => settings.seconds;
+                this.getCacheLifeTime = resposne => settings.seconds;
             }
             else if ( typeof settings.seconds === 'function' ) {
 
-                settings.getCacheLifeTime = settings.seconds;
+                this.getCacheLifeTime = settings.seconds;
             }
 
             return settings;
@@ -81,7 +82,7 @@
 
                 reqResPair.response = response.clone();
 
-                let cacheLifeTime = settings.getCacheLifeTime( response.clone() );
+                let cacheLifeTime = this.getCacheLifeTime( response.clone() );
 
                 if ( cacheLifeTime > 0 ) {
 
@@ -109,7 +110,7 @@
         promiseGetResponse( urlOrRequest, init ) {
 
             let settings = this.normalizeInitSettings( init );
-            let reqResPair = this.getPair( urlOrRequest, init );
+            let reqResPair = this.getPair( urlOrRequest, settings );
 
             if ( reqResPair === null ) {
 
